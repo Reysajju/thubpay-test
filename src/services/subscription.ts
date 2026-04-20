@@ -1,9 +1,6 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 interface SubscriptionPlan {
   id: string;
@@ -47,6 +44,7 @@ export async function createSubscriptionPlan(data: {
   interval: 'day' | 'week' | 'month' | 'year';
   trialDays: number;
 }): Promise<SubscriptionPlan> {
+  const admin = getAdmin();
   const { data: plan, error } = await admin
     .from('subscription_plans')
     .insert({
@@ -72,6 +70,7 @@ export async function createSubscriptionPlan(data: {
  * Get subscription plans for workspace
  */
 export async function getSubscriptionPlans(workspaceId: string): Promise<SubscriptionPlan[]> {
+  const admin = getAdmin();
   const { data: plans } = await admin
     .from('subscription_plans')
     .select('*')
@@ -86,6 +85,7 @@ export async function getSubscriptionPlans(workspaceId: string): Promise<Subscri
  * Create a subscription for a client
  */
 export async function createSubscription(input: CreateSubscriptionInput): Promise<SubscriptionData> {
+  const admin = getAdmin();
   const { data: plan } = await admin
     .from('subscription_plans')
     .select('*')
@@ -121,6 +121,7 @@ export async function createSubscription(input: CreateSubscriptionInput): Promis
  * Get client subscription
  */
 export async function getClientSubscription(clientId: string): Promise<SubscriptionData | null> {
+  const admin = getAdmin();
   const { data: subscription } = await admin
     .from('subscriptions')
     .select('*')
@@ -135,6 +136,7 @@ export async function getClientSubscription(clientId: string): Promise<Subscript
  * Cancel subscription at period end
  */
 export async function cancelSubscription(clientId: string): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('subscriptions')
     .update({
@@ -152,6 +154,7 @@ export async function cancelSubscription(clientId: string): Promise<void> {
  * Reactivate subscription
  */
 export async function reactivateSubscription(clientId: string): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('subscriptions')
     .update({
@@ -172,6 +175,7 @@ export async function updateSubscriptionStatus(
   clientId: string,
   status: 'active' | 'past_due' | 'canceled' | 'unpaid' | 'paused'
 ): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('subscriptions')
     .update({ status })
@@ -212,6 +216,7 @@ export function isEligibleForDunningRetry(subscription: SubscriptionData): boole
  * Handle failed payment for subscription
  */
 export async function handleFailedSubscriptionPayment(subscriptionId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: subscription } = await admin
     .from('subscriptions')
     .select('*')
@@ -238,6 +243,7 @@ export async function handleFailedSubscriptionPayment(subscriptionId: string): P
  * Handle successful payment for subscription
  */
 export async function handleSuccessfulSubscriptionPayment(subscriptionId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: subscription } = await admin
     .from('subscriptions')
     .select('*')
@@ -311,6 +317,7 @@ export async function handleSuccessfulSubscriptionPayment(subscriptionId: string
  * Send dunning email sequence
  */
 async function sendDunningEmail(clientId: string, subscriptionId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: subscription } = await admin
     .from('subscriptions')
     .select('client_id, plan_id, metadata')
@@ -358,6 +365,7 @@ async function sendDunningEmail(clientId: string, subscriptionId: string): Promi
  * Send renewal notification
  */
 async function sendRenewalEmail(clientId: string, subscriptionId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: subscription } = await admin
     .from('subscriptions')
     .select('plan_id')
@@ -397,6 +405,7 @@ export async function getSubscriptionStatistics(workspaceId: string): Promise<{
   canceled: number;
   total_revenue: number;
 }> {
+  const admin = getAdmin();
   const { data: subscriptions } = await admin
     .from('subscriptions')
     .select('status')
@@ -437,6 +446,7 @@ export async function checkDunningRetry(
   subscriptionId: string,
   retryDay: number
 ): Promise<boolean> {
+  const admin = getAdmin();
   const { data: subscription } = await admin
     .from('subscriptions')
     .select('current_period_end, status, metadata')
@@ -463,6 +473,7 @@ export async function checkDunningRetry(
  * Mark subscription for cancellation at period end
  */
 export async function scheduleCancellation(clientId: string): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('subscriptions')
     .update({
@@ -480,6 +491,7 @@ export async function scheduleCancellation(clientId: string): Promise<void> {
  * Get auto-cancelled subscriptions
  */
 export async function getAutoCancelledSubscriptions(): Promise<SubscriptionData[]> {
+  const admin = getAdmin();
   const { data: subscriptions } = await admin
     .from('subscriptions')
     .select('*')

@@ -1,9 +1,6 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 export type OnboardingStep =
   | 'add_client'
@@ -28,6 +25,7 @@ export async function completeOnboardingStep(
   workspaceId: string,
   stepName: OnboardingStep
 ): Promise<void> {
+  const admin = getAdmin();
   const now = new Date().toISOString();
 
   const { error } = await admin
@@ -54,6 +52,7 @@ export async function completeOnboardingStep(
  * Get onboarding steps for workspace
  */
 export async function getOnboardingSteps(workspaceId: string): Promise<OnboardingStepData[]> {
+  const admin = getAdmin();
   const { data, error } = await admin
     .from('onboarding_steps')
     .select('*')
@@ -72,6 +71,7 @@ export async function getOnboardingSteps(workspaceId: string): Promise<Onboardin
  * Get next onboarding step
  */
 export async function getNextOnboardingStep(workspaceId: string): Promise<OnboardingStep | null> {
+  const admin = getAdmin();
   const { data: allSteps } = await admin
     .from('onboarding_steps')
     .select('*')
@@ -107,6 +107,7 @@ export async function getNextOnboardingStep(workspaceId: string): Promise<Onboar
  * Check if onboarding is complete
  */
 export async function checkOnboardingComplete(workspaceId: string): Promise<boolean> {
+  const admin = getAdmin();
   const steps = await getOnboardingSteps(workspaceId);
 
   if (!steps || steps.length === 0) {
@@ -146,6 +147,7 @@ export async function getOnboardingProgress(workspaceId: string): Promise<number
  * Reset onboarding progress
  */
 export async function resetOnboardingProgress(workspaceId: string): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('onboarding_steps')
     .update({ is_completed: false, completed_at: null })
@@ -217,6 +219,7 @@ export function getOnboardingStepInstructions(stepName: OnboardingStep): string[
  * Initialize onboarding steps for workspace
  */
 export async function initializeOnboardingSteps(workspaceId: string): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('onboarding_steps')
     .insert([
@@ -240,6 +243,7 @@ export async function skipOnboardingStep(
   workspaceId: string,
   stepName: OnboardingStep
 ): Promise<void> {
+  const admin = getAdmin();
   const now = new Date().toISOString();
 
   const { error } = await admin

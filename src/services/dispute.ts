@@ -1,10 +1,7 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import Stripe from 'stripe';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 interface DisputeData {
   id: string;
@@ -43,6 +40,7 @@ export async function createDispute(data: {
   reason: string;
   email: string;
 }): Promise<DisputeData> {
+  const admin = getAdmin();
   const { data: dispute, error } = await admin
     .from('disputes')
     .insert({
@@ -83,6 +81,7 @@ export async function createDispute(data: {
  * Get dispute by ID
  */
 export async function getDispute(disputeId: string): Promise<DisputeData> {
+  const admin = getAdmin();
   const { data: dispute } = await admin
     .from('disputes')
     .select('*')
@@ -100,6 +99,7 @@ export async function getDispute(disputeId: string): Promise<DisputeData> {
  * Get disputes by workspace
  */
 export async function getDisputesByWorkspace(workspaceId: string) {
+  const admin = getAdmin();
   const { data: disputes } = await admin
     .from('disputes')
     .select('*')
@@ -120,6 +120,7 @@ export async function uploadDisputeEvidence(
     fileName: string;
   }
 ): Promise<EvidenceFile> {
+  const admin = getAdmin();
   const { data: evidence, error } = await admin
     .from('dispute_evidence')
     .insert({
@@ -143,6 +144,7 @@ export async function uploadDisputeEvidence(
  * Get evidence files for a dispute
  */
 export async function getDisputeEvidence(disputeId: string): Promise<EvidenceFile[]> {
+  const admin = getAdmin();
   const { data: evidence } = await admin
     .from('dispute_evidence')
     .select('*')
@@ -158,6 +160,7 @@ export async function updateDisputeStatus(
   disputeId: string,
   status: 'needs_response' | 'under_review' | 'won' | 'lost'
 ): Promise<void> {
+  const admin = getAdmin();
   const updateData: any = { status };
 
   if (status === 'under_review') {
@@ -195,16 +198,12 @@ export async function updateDisputeStatus(
  * Process Stripe dispute webhook
  */
 export async function handleStripeDisputeEvent(event: Stripe.Event): Promise<void> {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2023-10-16'
-  });
-
   if (event.type === 'charge.dispute.created') {
-    await handleDisputeCreated(event.data.object, event.id);
+    await handleDisputeCreated(event.data.object as Stripe.Dispute, event.id);
   } else if (event.type === 'charge.dispute.updated') {
-    await handleDisputeUpdated(event.data.object, event.id);
+    await handleDisputeUpdated(event.data.object as Stripe.Dispute, event.id);
   } else if (event.type === 'charge.dispute.closed') {
-    await handleDisputeClosed(event.data.object, event.id);
+    await handleDisputeClosed(event.data.object as Stripe.Dispute, event.id);
   }
 }
 
@@ -212,6 +211,7 @@ export async function handleStripeDisputeEvent(event: Stripe.Event): Promise<voi
  * Handle dispute created event
  */
 async function handleDisputeCreated(dispute: Stripe.Dispute, eventId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: transaction } = await admin
     .from('transactions')
     .select('*, invoice_id')
@@ -239,6 +239,7 @@ async function handleDisputeCreated(dispute: Stripe.Dispute, eventId: string): P
  * Handle dispute updated event
  */
 async function handleDisputeUpdated(dispute: Stripe.Dispute, eventId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: disputeRecord } = await admin
     .from('disputes')
     .select('*')
@@ -278,6 +279,7 @@ async function handleDisputeUpdated(dispute: Stripe.Dispute, eventId: string): P
  * Handle dispute closed event
  */
 async function handleDisputeClosed(dispute: Stripe.Dispute, eventId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: disputeRecord } = await admin
     .from('disputes')
     .select('*')
@@ -317,6 +319,7 @@ export async function submitDisputeEvidenceToGateway(
   disputeId: string,
   evidenceFiles: EvidenceFile[]
 ): Promise<void> {
+  const admin = getAdmin();
   const { data: dispute } = await admin
     .from('disputes')
     .select('gateway_dispute_id')
@@ -345,6 +348,7 @@ export async function getDisputeStatistics(workspaceId: string): Promise<{
   lost: number;
   total_at_stake: number;
 }> {
+  const admin = getAdmin();
   const { data: disputes } = await admin
     .from('disputes')
     .select('status, amount_cents')
@@ -366,6 +370,7 @@ export async function getDisputeStatistics(workspaceId: string): Promise<{
  * Get overdue disputes
  */
 export async function getOverdueDisputes(workspaceId: string): Promise<DisputeData[]> {
+  const admin = getAdmin();
   const { data: disputes } = await admin
     .from('disputes')
     .select('*')
@@ -385,6 +390,7 @@ export async function calculateDisputeWinRate(workspaceId: string): Promise<{
   lost: number;
   win_rate: number;
 }> {
+  const admin = getAdmin();
   const { data: disputes } = await admin
     .from('disputes')
     .select('status')

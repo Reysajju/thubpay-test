@@ -1,11 +1,8 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import Stripe from 'stripe';
 import { getURL } from '@/utils/helpers';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 /**
  * Stripe Connect Platform Setup
@@ -91,6 +88,7 @@ export async function createConnectedAccount(
     type: 'account_onboarding'
   });
 
+  const admin = getAdmin();
   await admin
     .from('gateway_credentials')
     .insert({
@@ -120,6 +118,7 @@ export async function getOnboardingUrl(
     apiVersion: '2023-10-16'
   });
 
+  const admin = getAdmin();
   const { data: credentials } = await admin
     .from('gateway_credentials')
     .select('key_value')

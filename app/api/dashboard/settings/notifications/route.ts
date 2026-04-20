@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/dashboard/settings/notifications
@@ -12,6 +9,7 @@ const admin = createAdminClient(
  */
 export async function GET(request: NextRequest) {
   try {
+    const admin = getSupabaseAdmin();
     const { data: preferences, error } = await admin
       .from('notification_preferences')
       .select('*')
@@ -40,6 +38,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const admin = getSupabaseAdmin();
     const body = await request.json();
     const { workspace_id, user_id, channel, event_type, is_enabled = true } = body;
 

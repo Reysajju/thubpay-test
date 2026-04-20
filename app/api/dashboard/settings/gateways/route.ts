@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import { encryptField } from '@/lib/encryption';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/dashboard/settings/gateways
@@ -13,6 +10,7 @@ const admin = createAdminClient(
  */
 export async function GET(request: NextRequest) {
   try {
+    const admin = getSupabaseAdmin();
     const { data: gateways, error } = await admin
       .from('gateway_credentials')
       .select('*')
@@ -47,6 +45,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const admin = getSupabaseAdmin();
     const body = await request.json();
     // Front-end UI passes api_key and secret_key inside the payload
     const { workspace_id, gateway_slug, api_key, secret_key, mode } = body;

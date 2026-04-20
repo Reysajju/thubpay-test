@@ -1,10 +1,7 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import Redis from 'ioredis';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
@@ -133,8 +130,7 @@ export async function incrementRateLimitCounter(
   endpointType: string,
   count: number = 1
 ): Promise<void> {
-  const key = `rate_limit_db:${identifier}:${endpointType}`;
-
+  const admin = getAdmin();
   await admin.from('rate_limits').insert({
     identifier,
     endpoint_type: endpointType,
@@ -154,6 +150,7 @@ export async function getRateLimitStats(
   timestamp: string;
   count: number;
 }>> {
+  const admin = getAdmin();
   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
 
   const { data } = await admin
@@ -185,6 +182,7 @@ export async function enforceRateLimit(
   identifier: string,
   endpointType: string
 ): Promise<RateLimitResult | null> {
+  const admin = getAdmin();
   const result = await checkRateLimitWithIdentifier(identifier, endpointType);
 
   if (!result.allowed) {
@@ -263,6 +261,7 @@ export async function setCustomRateLimit(
  * Reset rate limit (for testing or manual reset)
  */
 export async function resetRateLimit(identifier: string, endpointType: string): Promise<void> {
+  const admin = getAdmin();
   const key = `rate_limit:${identifier}:${endpointType}`;
   await redis.del(key);
 
@@ -283,6 +282,7 @@ export async function getRateLimitMetrics(hours: number = 24): Promise<{
   unique_ips: number;
   average_requests_per_minute: number;
 }> {
+  const admin = getAdmin();
   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
 
   const { data } = await admin
