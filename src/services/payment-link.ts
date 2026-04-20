@@ -1,7 +1,7 @@
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 import { getURL } from '@/utils/helpers';
 
-const getAdmin = () => getSupabaseAdmin();
+const getAdmin = () => getSupabaseAdminAny();
 
 interface PaymentLinkData {
   id: string;

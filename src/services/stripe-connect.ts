@@ -1,8 +1,8 @@
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 import Stripe from 'stripe';
 import { getURL } from '@/utils/helpers';
 
-const getAdmin = () => getSupabaseAdmin();
+const getAdmin = () => getSupabaseAdminAny();
 
 /**
  * Stripe Connect Platform Setup

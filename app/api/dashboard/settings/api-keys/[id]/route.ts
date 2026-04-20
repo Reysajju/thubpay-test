@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +12,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const admin = getSupabaseAdmin();
+    const admin = getSupabaseAdminAny();
     const { error } = await admin
       .from('api_keys')
       .delete()

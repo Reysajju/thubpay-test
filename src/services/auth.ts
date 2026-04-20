@@ -1,8 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 import bcrypt from 'bcryptjs';
 
-const getAdmin = () => getSupabaseAdmin();
+const getAdmin = () => getSupabaseAdminAny();
 
 export interface JWTPayload {
   userId: string;

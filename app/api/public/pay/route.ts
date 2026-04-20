@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 import { getURL } from '@/utils/helpers';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
  */
 export async function POST(request: NextRequest) {
   try {
-    const admin = getSupabaseAdmin();
+    const admin = getSupabaseAdminAny();
     const body = await request.json();
     const { paymentLinkId, amount, currency, description } = body;
 

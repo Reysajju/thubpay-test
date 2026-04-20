@@ -1,7 +1,7 @@
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 import Redis from 'ioredis';
 
-const getAdmin = () => getSupabaseAdmin();
+const getAdmin = () => getSupabaseAdminAny();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 

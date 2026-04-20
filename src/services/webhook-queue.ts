@@ -1,6 +1,6 @@
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 
-const getAdmin = () => getSupabaseAdmin();
+const getAdmin = () => getSupabaseAdminAny();
 
 export async function enqueueWebhookJob(input: {
   gateway: string;

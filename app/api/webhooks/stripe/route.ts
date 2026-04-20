@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { stripe } from '@/utils/stripe/config';
 import {
   getSupabaseAdmin,
+  getSupabaseAdminAny,
   upsertProductRecord,
   upsertPriceRecord,
   manageSubscriptionStatusChange,
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
             const workspaceId = checkoutSession.metadata?.workspace_id;
             
             if (invoiceId && workspaceId && checkoutSession.payment_status === 'paid') {
-              const admin = getSupabaseAdmin();
+              const admin = getSupabaseAdminAny();
               
               const { data: invoice } = await admin
                 .from('invoices')

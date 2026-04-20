@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 import { sendEmail } from '@/utils/mailer';
 
 interface NotificationPayload {
@@ -13,7 +13,7 @@ interface NotificationPayload {
   metadata?: Record<string, any>;
 }
 
-const getAdmin = () => getSupabaseAdmin();
+const getAdmin = () => getSupabaseAdminAny();
 
 /**
  * Send in-app notifications

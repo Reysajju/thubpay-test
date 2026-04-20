@@ -23,6 +23,20 @@ function getSupabaseAdmin() {
   return createClient<Database>(supabaseUrl, serviceRoleKey);
 }
 
+// Returns the same service-role client but typed as `any` so routes that query
+// custom tables (transactions, payment_links, invoices, etc.) which are not yet
+// present in types_db.ts can call it without per-line `as any` casts.
+function getSupabaseAdminAny(): any {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      'Supabase admin environment variables are missing. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
+    );
+  }
+  return createClient(supabaseUrl, serviceRoleKey);
+}
+
 const upsertProductRecord = async (product: Stripe.Product) => {
   const supabaseAdmin = getSupabaseAdmin();
   const productData: Product = {
@@ -303,5 +317,6 @@ export {
   deletePriceRecord,
   createOrRetrieveCustomer,
   manageSubscriptionStatusChange,
-  getSupabaseAdmin
+  getSupabaseAdmin,
+  getSupabaseAdminAny
 };

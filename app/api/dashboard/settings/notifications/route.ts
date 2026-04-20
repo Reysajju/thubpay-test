@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/utils/supabase/admin';
+import { getSupabaseAdminAny } from '@/utils/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   try {
-    const admin = getSupabaseAdmin();
+    const admin = getSupabaseAdminAny();
     const { data: preferences, error } = await admin
       .from('notification_preferences')
       .select('*')
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const admin = getSupabaseAdmin();
+    const admin = getSupabaseAdminAny();
     const body = await request.json();
     const { workspace_id, user_id, channel, event_type, is_enabled = true } = body;
 
