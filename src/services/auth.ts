@@ -1,11 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import bcrypt from 'bcryptjs';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 export interface JWTPayload {
   userId: string;
@@ -147,6 +144,7 @@ export async function comparePassword(password: string, hash: string): Promise<b
  */
 export async function signUp(email: string, password: string, workspaceName?: string): Promise<AuthResult> {
   try {
+    const admin = getAdmin();
     // Create user in Supabase Auth
     const { data: user, error } = await admin.auth.admin.createUser({
       email,
@@ -223,6 +221,7 @@ export async function signUp(email: string, password: string, workspaceName?: st
  */
 export async function signIn(email: string, password: string): Promise<AuthResult> {
   try {
+    const admin = getAdmin();
     // Get user from Supabase using admin listUsers
     const { data: { users }, error } = await admin.auth.admin.listUsers();
 
@@ -290,6 +289,7 @@ export async function signOut(refreshToken: string): Promise<boolean> {
  */
 export async function getUserProfile(userId: string) {
   try {
+    const admin = getAdmin();
     const { data: user } = await admin.auth.admin.getUserById(userId);
 
     if (!user?.user) {
@@ -332,6 +332,7 @@ export async function getUserProfile(userId: string) {
  */
 export async function updatePassword(userId: string, currentPassword: string, newPassword: string): Promise<boolean> {
   try {
+    const admin = getAdmin();
     // Get user to verify current password
     const { data: { user } } = await admin.auth.admin.getUserById(userId);
 

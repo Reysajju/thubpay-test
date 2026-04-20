@@ -1,10 +1,7 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import { getURL } from '@/utils/helpers';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 interface PaymentLinkData {
   id: string;
@@ -36,6 +33,7 @@ interface CreatePaymentLinkInput {
  * Create a payment link
  */
 export async function createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkData> {
+  const admin = getAdmin();
   const gatewaySlug = data.gatewaySlug || 'stripe';
 
   // Create payment link
@@ -62,7 +60,7 @@ export async function createPaymentLink(data: CreatePaymentLinkInput): Promise<P
 
   // Generate public URL
   const publicUrl = getURL(`pay/${paymentLink.id}`);
-  paymentLink.public_url = publicUrl;
+  (paymentLink as any).public_url = publicUrl;
 
   return paymentLink as PaymentLinkData;
 }
@@ -71,6 +69,7 @@ export async function createPaymentLink(data: CreatePaymentLinkInput): Promise<P
  * Get payment link by ID
  */
 export async function getPaymentLink(paymentLinkId: string): Promise<PaymentLinkData> {
+  const admin = getAdmin();
   const { data: paymentLink } = await admin
     .from('payment_links')
     .select('*')
@@ -88,6 +87,7 @@ export async function getPaymentLink(paymentLinkId: string): Promise<PaymentLink
  * Use payment link (increment usage counter)
  */
 export async function usePaymentLink(paymentLinkId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: paymentLink } = await admin
     .from('payment_links')
     .select('*')
@@ -130,6 +130,7 @@ export async function getPaymentLinksByWorkspace(
   workspaceId: string,
   limit: number = 50
 ): Promise<PaymentLinkData[]> {
+  const admin = getAdmin();
   const { data: paymentLinks } = await admin
     .from('payment_links')
     .select('*')
@@ -174,6 +175,7 @@ export async function getPaymentLinkStats(workspaceId: string): Promise<{
   expired: number;
   totalUses: number;
 }> {
+  const admin = getAdmin();
   const { data: paymentLinks } = await admin
     .from('payment_links')
     .select('*')
@@ -191,6 +193,7 @@ export async function getPaymentLinkStats(workspaceId: string): Promise<{
  * Calculate payout due amount for all payment links
  */
 export async function calculateTotalPayoutDue(workspaceId: string): Promise<number> {
+  const admin = getAdmin();
   const { data: paymentLinks } = await admin
     .from('payment_links')
     .select('amount_cents')
@@ -218,6 +221,7 @@ export async function getPaymentLinkUsageHistory(paymentLinkId: string): Promise
  * Check if payment link is overpaid
  */
 export async function checkIfOverpaid(paymentLinkId: string): Promise<boolean> {
+  const admin = getAdmin();
   const { data: paymentLink } = await admin
     .from('payment_links')
     .select('*')
@@ -249,6 +253,7 @@ export async function createPaymentLinkFromInvoice(
   invoiceId: string,
   workspaceId: string
 ): Promise<PaymentLinkData> {
+  const admin = getAdmin();
   const { data: invoice } = await admin
     .from('invoices')
     .select('*, clients(email)')
@@ -262,10 +267,10 @@ export async function createPaymentLinkFromInvoice(
   // Create payment link with invoice amount
   return createPaymentLink({
     workspaceId,
-    amountCents: invoice.amount_cents,
-    currency: invoice.currency,
-    description: invoice.notes || `Payment for ${invoice.invoice_number}`,
-    gatewaySlug: invoice.gateway_slug || 'stripe',
+    amountCents: (invoice as any).amount_cents,
+    currency: (invoice as any).currency,
+    description: (invoice as any).notes || `Payment for ${(invoice as any).invoice_number}`,
+    gatewaySlug: (invoice as any).gateway_slug || 'stripe',
     invoiceId
   });
 }
@@ -277,6 +282,7 @@ export async function updatePaymentLinkStatus(
   paymentLinkId: string,
   status: 'active' | 'expired' | 'revoked'
 ): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('payment_links')
     .update({ status })

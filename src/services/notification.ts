@@ -1,4 +1,4 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import { sendEmail } from '@/utils/mailer';
 
 interface NotificationPayload {
@@ -13,18 +13,13 @@ interface NotificationPayload {
   metadata?: Record<string, any>;
 }
 
-function getAdminClient() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  );
-}
+const getAdmin = () => getSupabaseAdmin();
 
 /**
  * Send in-app notifications
  */
 export async function sendInAppNotification(payload: Omit<NotificationPayload, 'channel'>): Promise<void> {
-  const admin = getAdminClient();
+  const admin = getAdmin();
 
   await admin
     .from('notifications')
@@ -52,7 +47,7 @@ export async function sendEmailNotification(payload: Omit<NotificationPayload, '
     }
 
     // Try to get email template from DB (optional — falls back to inline)
-    const admin = getAdminClient();
+    const admin = getAdmin();
     const emailTemplateMap: Record<string, string> = {
       payment_succeeded: 'payment_confirmation',
       payment_failed: 'payment_failed',
@@ -184,7 +179,7 @@ export async function dispatchNotification(payload: NotificationPayload): Promis
     await sendInAppNotification(payload);
 
     // Dispatch to other channels based on notification preferences
-    const admin = getAdminClient();
+    const admin = getAdmin();
     const { data: preferences } = await admin
       .from('notification_preferences')
       .select('*')

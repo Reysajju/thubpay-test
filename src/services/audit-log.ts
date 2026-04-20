@@ -1,9 +1,6 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 export interface AuditLogEntry {
   id?: string;
@@ -52,6 +49,7 @@ export async function writeAuditLog(input: {
   details?: Record<string, any>;
 }) {
   try {
+    const admin = getAdmin();
     await admin.from('transaction_events').insert({
       workspace_id: input.workspaceId,
       user_id: input.userId,
@@ -100,6 +98,7 @@ export async function getAuditLogEntries(
   limit: number = 100
 ) {
   try {
+    const admin = getAdmin();
     const { data, error } = await admin
       .from('transaction_events')
       .select('*')

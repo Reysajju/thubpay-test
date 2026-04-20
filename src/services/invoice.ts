@@ -1,9 +1,6 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 interface InvoiceData {
   id: string;
@@ -45,6 +42,7 @@ export async function createInvoice(data: {
   paymentTerms?: string;
   discountPercent?: number;
 }): Promise<InvoiceData> {
+  const admin = getAdmin();
   const { data: invoice, error } = await admin
     .from('invoices')
     .insert({
@@ -90,6 +88,7 @@ export async function updateInvoiceStatus(
   invoiceId: string,
   status: 'draft' | 'sent' | 'viewed' | 'paid' | 'partially_paid' | 'void' | 'overdue'
 ): Promise<void> {
+  const admin = getAdmin();
   const updateData: any = {
     status
   };
@@ -120,6 +119,7 @@ export async function applyPaymentToInvoice(
   paymentGateway?: string,
   gatewayTransactionId?: string
 ): Promise<void> {
+  const admin = getAdmin();
   const { data: invoice } = await admin
     .from('invoices')
     .select('amount_cents, balance_due_cents, status, client_id')
@@ -186,6 +186,7 @@ export async function applyPaymentToInvoice(
  * Get invoice by ID with line items
  */
 export async function getInvoiceWithLineItems(invoiceId: string) {
+  const admin = getAdmin();
   const { data: invoice } = await admin
     .from('invoices')
     .select('*')
@@ -212,6 +213,7 @@ export async function getInvoiceWithLineItems(invoiceId: string) {
  * Get invoices by workspace
  */
 export async function getInvoicesByWorkspace(workspaceId: string) {
+  const admin = getAdmin();
   const { data: invoices } = await admin
     .from('invoices')
     .select('*')
@@ -258,6 +260,7 @@ export async function getInvoicePDFData(invoiceId: string) {
  * Update invoice notes
  */
 export async function updateInvoiceNotes(invoiceId: string, notes: string): Promise<void> {
+  const admin = getAdmin();
   const { error } = await admin
     .from('invoices')
     .update({ notes })
@@ -300,6 +303,7 @@ export function isInvoiceOverdue(dueDate: string, status: string): boolean {
  * Get overdue invoices
  */
 export async function getOverdueInvoices(workspaceId: string) {
+  const admin = getAdmin();
   const { data: invoices } = await admin
     .from('invoices')
     .select('*')

@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 import { getURL } from '@/utils/helpers';
+
+export const dynamic = 'force-dynamic';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16'
 });
-
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
 
 /**
  * Public API endpoint to create a Stripe Checkout session for a payment link
@@ -18,6 +15,7 @@ const admin = createAdminClient(
  */
 export async function POST(request: NextRequest) {
   try {
+    const admin = getSupabaseAdmin();
     const body = await request.json();
     const { paymentLinkId, amount, currency, description } = body;
 
@@ -50,14 +48,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (new Date(paymentLink.expires_at!) < new Date()) {
+    if (paymentLink.expires_at && new Date(paymentLink.expires_at) < new Date()) {
       return NextResponse.json(
         { error: 'Payment link has expired' },
         { status: 400 }
       );
     }
 
-    if (paymentLink.current_uses >= paymentLink.max_uses!) {
+    if (paymentLink.max_uses && paymentLink.current_uses >= paymentLink.max_uses) {
       return NextResponse.json(
         { error: 'Payment link has reached maximum uses' },
         { status: 400 }
@@ -71,7 +69,7 @@ export async function POST(request: NextRequest) {
       .eq('id', paymentLink.workspace_id)
       .single();
 
-    const workspaceBrand = workspace?.brands[0];
+    const workspaceBrand = (workspace?.brands as any[])?.[0];
     const companyName = workspaceBrand?.name || 'Payment';
 
     // Create Stripe Checkout session

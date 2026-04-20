@@ -1,10 +1,6 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const getAdmin = () => getSupabaseAdmin();
 
 interface PayoutData {
   id: string;
@@ -34,6 +30,7 @@ export async function calculatePayoutBalance(
   workspaceId: string,
   gatewaySlug: string
 ): Promise<number> {
+  const admin = getAdmin();
   const { data: transactions } = await admin
     .from('transactions')
     .select('amount_cents, status')
@@ -67,6 +64,7 @@ export async function createPayout(data: {
   gatewaySlug: string;
   currency?: string;
 }): Promise<PayoutData> {
+  const admin = getAdmin();
   const { data: payout, error } = await admin
     .from('payouts')
     .insert({
@@ -91,6 +89,7 @@ export async function createPayout(data: {
  * Process pending payouts (manual initiation)
  */
 export async function processPayout(payoutId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: payout } = await admin
     .from('payouts')
     .select('*')
@@ -109,9 +108,9 @@ export async function processPayout(payoutId: string): Promise<void> {
 
   // Initiate payout through gateway
   if (payout.gateway_slug === 'stripe') {
-    await initiateStripePayout(payout);
+    await initiateStripePayout(payout as any);
   } else if (payout.gateway_slug === 'paypal') {
-    await initiatePayPalPayout(payout);
+    await initiatePayPalPayout(payout as any);
   } else {
     throw new Error(`Unsupported gateway for payouts: ${payout.gateway_slug}`);
   }
@@ -126,6 +125,7 @@ async function initiateStripePayout(payout: PayoutData): Promise<void> {
     apiVersion: '2023-10-16'
   });
 
+  const admin = getAdmin();
   const { data: account } = await admin
     .from('gateway_credentials')
     .select('key_value')
@@ -166,7 +166,6 @@ async function initiateStripePayout(payout: PayoutData): Promise<void> {
  * Process PayPal payout
  */
 async function initiatePayPalPayout(payout: PayoutData): Promise<void> {
-  // PayPal API integration for payouts
   const token = await getPayPalAccessToken();
   const payoutId = `thubpay_payout_${payout.id}`;
 
@@ -203,6 +202,7 @@ async function initiatePayPalPayout(payout: PayoutData): Promise<void> {
   }
 
   // Update payout status
+  const admin = getAdmin();
   await admin
     .from('payouts')
     .update({
@@ -219,6 +219,7 @@ async function initiatePayPalPayout(payout: PayoutData): Promise<void> {
  * Get payout settings
  */
 export async function getPayoutSettings(workspaceId: string): Promise<PayoutSettingsData> {
+  const admin = getAdmin();
   const { data: settings } = await admin
     .from('payout_settings')
     .select('*')
@@ -242,6 +243,7 @@ export async function updatePayoutSettings(data: {
   minimumAmountCents: number;
   isActive: boolean;
 }): Promise<void> {
+  const admin = getAdmin();
   const { data: updatedSettings, error } = await admin
     .from('payout_settings')
     .upsert({
@@ -263,6 +265,7 @@ export async function updatePayoutSettings(data: {
  * Get payout history
  */
 export async function getPayoutHistory(workspaceId: string, limit: number = 50) {
+  const admin = getAdmin();
   const { data: payouts } = await admin
     .from('payouts')
     .select('*')
@@ -277,6 +280,7 @@ export async function getPayoutHistory(workspaceId: string, limit: number = 50) 
  * Get summary statistics for payouts
  */
 export async function getPayoutSummary(workspaceId: string) {
+  const admin = getAdmin();
   const { data: payouts } = await admin
     .from('payouts')
     .select('amount_cents, status')
@@ -326,6 +330,7 @@ async function getPayPalAccessToken(): Promise<string> {
  * Schedule automatic payouts
  */
 export async function scheduleAutomaticPayouts(): Promise<void> {
+  const admin = getAdmin();
   const { data: settingsList } = await admin
     .from('payout_settings')
     .select('*')
@@ -361,6 +366,7 @@ export async function scheduleAutomaticPayouts(): Promise<void> {
  * Handle payout success webhook
  */
 export async function handlePayoutSuccess(payoutId: string, gatewayPayoutId: string): Promise<void> {
+  const admin = getAdmin();
   const { data: payout } = await admin
     .from('payouts')
     .update({
@@ -391,6 +397,7 @@ export async function handlePayoutSuccess(payoutId: string, gatewayPayoutId: str
  * Handle payout failure webhook
  */
 export async function handlePayoutFailure(payoutId: string, error: string): Promise<void> {
+  const admin = getAdmin();
   await admin
     .from('payouts')
     .update({

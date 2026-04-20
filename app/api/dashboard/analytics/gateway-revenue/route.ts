@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/dashboard/analytics/gateway-revenue
@@ -12,6 +9,7 @@ const admin = createAdminClient(
  */
 export async function GET(request: NextRequest) {
   try {
+    const admin = getSupabaseAdmin();
     const searchParams = request.nextUrl.searchParams;
     const range = searchParams.get('range') || '30d';
 

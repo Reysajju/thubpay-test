@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-export const dynamic = 'force-dynamic';
 import Stripe from 'stripe';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
+
+export const dynamic = 'force-dynamic';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16'
 });
-
-const admin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
 
 /**
  * Public API endpoint to verify a Stripe payment
@@ -18,6 +14,7 @@ const admin = createAdminClient(
  */
 export async function GET(request: NextRequest) {
   try {
+    const admin = getSupabaseAdmin();
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get('session_id');
     const paymentIntentId = searchParams.get('payment_intent');

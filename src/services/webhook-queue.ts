@@ -1,11 +1,6 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/utils/supabase/admin';
 
-function getAdminClient() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  );
-}
+const getAdmin = () => getSupabaseAdmin();
 
 export async function enqueueWebhookJob(input: {
   gateway: string;
@@ -13,7 +8,7 @@ export async function enqueueWebhookJob(input: {
   eventType: string;
   payload: string;
 }) {
-  const admin = getAdminClient();
+  const admin = getAdmin();
   await (admin as any).from('webhook_jobs').insert({
     gateway_slug: input.gateway,
     event_id: input.eventId,

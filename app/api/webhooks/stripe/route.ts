@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import { stripe } from '@/utils/stripe/config';
-import { createClient } from '@supabase/supabase-js';
 import {
+  getSupabaseAdmin,
   upsertProductRecord,
   upsertPriceRecord,
   manageSubscriptionStatusChange,
@@ -82,10 +82,7 @@ export async function POST(req: Request) {
             const workspaceId = checkoutSession.metadata?.workspace_id;
             
             if (invoiceId && workspaceId && checkoutSession.payment_status === 'paid') {
-              const admin = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-                process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-              );
+              const admin = getSupabaseAdmin();
               
               const { data: invoice } = await admin
                 .from('invoices')
@@ -122,7 +119,7 @@ export async function POST(req: Request) {
               });
 
               // 4. Record cash ledger
-              if (invoice.total_cents) {
+              if ((invoice as any).total_cents) {
                 await admin.from('cash_ledger').insert({
                   workspace_id: workspaceId,
                   invoice_id: invoiceId,
@@ -133,12 +130,12 @@ export async function POST(req: Request) {
               }
 
               // 5. Send receipt email
-              const clientEmail = checkoutSession.customer_details?.email || invoice.clients?.email;
+              const clientEmail = checkoutSession.customer_details?.email || (invoice as any).clients?.email;
               if (clientEmail) {
                  await sendPaidReceiptEmail({
                     to: clientEmail,
-                    invoiceNumber: invoice.invoice_number,
-                    brandName: invoice.brands?.name || 'ThubPay',
+                    invoiceNumber: (invoice as any).invoice_number,
+                    brandName: (invoice as any).brands?.name || 'ThubPay',
                     amountPaidCents: amountPaid,
                     paymentUrl: getURL(`/pay/${invoiceId}`)
                  });
