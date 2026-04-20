@@ -39,7 +39,7 @@ export async function calculatePayoutBalance(
     .eq('status', 'succeeded')
     .gte('payout_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
-  const total = transactions?.reduce((sum, t) => sum + t.amount_cents, 0) || 0;
+  const total = transactions?.reduce((sum: number, t: any) => sum + t.amount_cents, 0) || 0;
 
   return total;
 }
@@ -287,16 +287,16 @@ export async function getPayoutSummary(workspaceId: string) {
     .eq('workspace_id', workspaceId);
 
   const totalPaid = payouts
-    ?.filter((p) => p.status === 'paid')
-    .reduce((sum, p) => sum + p.amount_cents, 0) || 0;
+    ?.filter((p: any) => p.status === 'paid')
+    .reduce((sum: number, p: any) => sum + p.amount_cents, 0) || 0;
 
   const pending = payouts
-    ?.filter((p) => p.status === 'pending' || p.status === 'in_transit')
-    .reduce((sum, p) => sum + p.amount_cents, 0) || 0;
+    ?.filter((p: any) => p.status === 'pending' || p.status === 'in_transit')
+    .reduce((sum: number, p: any) => sum + p.amount_cents, 0) || 0;
 
   const failed = payouts
-    ?.filter((p) => p.status === 'failed')
-    .reduce((sum, p) => sum + p.amount_cents, 0) || 0;
+    ?.filter((p: any) => p.status === 'failed')
+    .reduce((sum: number, p: any) => sum + p.amount_cents, 0) || 0;
 
   return {
     totalPaid,
@@ -414,7 +414,7 @@ export async function exportPayoutsToCSV(workspaceId: string): Promise<string> {
   const payouts = await getPayoutHistory(workspaceId, 1000);
 
   const headers = ['Payout ID', 'Amount', 'Currency', 'Status', 'Date Created', 'Date Processed'];
-  const rows = payouts.map((p) => [
+  const rows = payouts.map((p: any) => [
     p.id,
     (p.amount_cents / 100).toFixed(2),
     p.currency,
@@ -425,7 +425,7 @@ export async function exportPayoutsToCSV(workspaceId: string): Promise<string> {
 
   const csv = [
     headers.join(','),
-    ...rows.map((row) => row.join(','))
+    ...rows.map((row: any) => row.join(','))
   ].join('\n');
 
   return csv;

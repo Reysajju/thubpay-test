@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     // Group by date
     const grouped: Record<string, number> = {};
-    transactions?.forEach((t) => {
+    transactions?.forEach((t: any) => {
       const date = new Date(t.created_at).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric'

@@ -356,11 +356,11 @@ export async function getDisputeStatistics(workspaceId: string): Promise<{
 
   const stats = {
     total: disputes?.length || 0,
-    needs_response: disputes?.filter((d) => d.status === 'needs_response').length || 0,
-    under_review: disputes?.filter((d) => d.status === 'under_review').length || 0,
-    won: disputes?.filter((d) => d.status === 'won').length || 0,
-    lost: disputes?.filter((d) => d.status === 'lost').length || 0,
-    total_at_stake: disputes?.reduce((sum, d) => sum + d.amount_cents, 0) || 0
+    needs_response: disputes?.filter((d: any) => d.status === 'needs_response').length || 0,
+    under_review: disputes?.filter((d: any) => d.status === 'under_review').length || 0,
+    won: disputes?.filter((d: any) => d.status === 'won').length || 0,
+    lost: disputes?.filter((d: any) => d.status === 'lost').length || 0,
+    total_at_stake: disputes?.reduce((sum: number, d: any) => sum + d.amount_cents, 0) || 0
   };
 
   return stats;
@@ -398,8 +398,8 @@ export async function calculateDisputeWinRate(workspaceId: string): Promise<{
     .neq('status', 'needs_response');
 
   const total = disputes?.length || 0;
-  const won = disputes?.filter((d) => d.status === 'won').length || 0;
-  const lost = disputes?.filter((d) => d.status === 'lost').length || 0;
+  const won = disputes?.filter((d: any) => d.status === 'won').length || 0;
+  const lost = disputes?.filter((d: any) => d.status === 'lost').length || 0;
   const win_rate = total > 0 ? Math.round((won / total) * 100) : 0;
 
   return { total, won, lost, win_rate };

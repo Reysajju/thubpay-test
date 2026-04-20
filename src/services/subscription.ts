@@ -411,9 +411,9 @@ export async function getSubscriptionStatistics(workspaceId: string): Promise<{
     .select('status')
     .eq('workspace_id', workspaceId);
 
-  const active = subscriptions?.filter((s) => s.status === 'active').length || 0;
-  const past_due = subscriptions?.filter((s) => s.status === 'past_due').length || 0;
-  const canceled = subscriptions?.filter((s) => s.status === 'canceled').length || 0;
+  const active = subscriptions?.filter((s: any) => s.status === 'active').length || 0;
+  const past_due = subscriptions?.filter((s: any) => s.status === 'past_due').length || 0;
+  const canceled = subscriptions?.filter((s: any) => s.status === 'canceled').length || 0;
   const total_subscribers = subscriptions?.length || 0;
 
   // Calculate revenue
@@ -422,13 +422,13 @@ export async function getSubscriptionStatistics(workspaceId: string): Promise<{
     .select('id')
     .eq('workspace_id', workspaceId);
 
-  const planIdsArray = planIds?.map((p) => p.id) || [];
+  const planIdsArray = planIds?.map((p: any) => p.id) || [];
   const { data: plans } = await admin
     .from('subscription_plans')
     .select('amount_cents')
     .in('id', planIdsArray);
 
-  const total_revenue = plans?.reduce((sum, p) => sum + p.amount_cents, 0) || 0;
+  const total_revenue = plans?.reduce((sum: number, p: any) => sum + p.amount_cents, 0) || 0;
 
   return {
     total_subscribers,

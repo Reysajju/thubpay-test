@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     // Group by gateway
     const grouped: Record<string, { amount: number; count: number }> = {};
 
-    transactions?.forEach((t) => {
+    transactions?.forEach((t: any) => {
       const gateway = t.gateway_slug || 'unknown';
       if (!grouped[gateway]) {
         grouped[gateway] = { amount: 0, count: 0 };

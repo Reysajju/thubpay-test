@@ -182,9 +182,9 @@ export async function getPaymentLinkStats(workspaceId: string): Promise<{
     .eq('workspace_id', workspaceId);
 
   const total = paymentLinks?.length || 0;
-  const active = paymentLinks?.filter((p) => p.status === 'active').length || 0;
-  const expired = paymentLinks?.filter((p) => p.expires_at && new Date(p.expires_at) < new Date()).length || 0;
-  const totalUses = paymentLinks?.reduce((sum, p) => sum + p.current_uses, 0) || 0;
+  const active = paymentLinks?.filter((p: any) => p.status === 'active').length || 0;
+  const expired = paymentLinks?.filter((p: any) => p.expires_at && new Date(p.expires_at) < new Date()).length || 0;
+  const totalUses = paymentLinks?.reduce((sum: number, p: any) => sum + p.current_uses, 0) || 0;
 
   return { total, active, expired, totalUses };
 }
@@ -199,7 +199,7 @@ export async function calculateTotalPayoutDue(workspaceId: string): Promise<numb
     .select('amount_cents')
     .eq('workspace_id', workspaceId);
 
-  return paymentLinks?.reduce((sum, p) => sum + p.amount_cents, 0) || 0;
+  return paymentLinks?.reduce((sum: number, p: any) => sum + p.amount_cents, 0) || 0;
 }
 
 /**
